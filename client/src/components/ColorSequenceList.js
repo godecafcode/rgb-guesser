@@ -6,11 +6,11 @@ const CurrentColor = props => {
 	return (
 		<li
 			className={
-				'min-w-[4rem] min-h-[4rem] mr-4 grid place-items-center rounded relative border-black border-2'
+				'w-[4rem] h-[4rem] mr-4 grid place-items-center rounded relative border-black border-2'
 			}
 		>
 			<img
-				className='object-contain'
+				className='object-fill'
 				src={`data:image/jpeg;base64,${props.base64ColorData}`}
 				alt=''
 			/>
@@ -34,7 +34,7 @@ const ColorSequenceList = props => {
 				props.widthFull ? 'w-full' : 'w-screen'
 			} h-24 bg-slate-300 flex items-center overflow-x-auto scrollable-mobile`}
 		>
-			<ul className='flex flex-row  px-4 items-center '>
+			<ul className='flex flex-row px-4 items-center '>
 				<CurrentColor base64ColorData={props.base64ColorData} />
 
 				{props.colorSequence.map((color, idx) => (

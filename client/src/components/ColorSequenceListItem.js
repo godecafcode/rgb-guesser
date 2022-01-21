@@ -4,7 +4,7 @@ const ColorSequenceListItem = ({ color, textContent }) => {
 	return (
 		<li
 			className={
-				'min-w-[3.5rem] min-h-[3.5rem] mr-4 grid place-items-center rounded relative border-black border-2'
+				'w-[3.5rem] h-[3.5rem] mr-4 grid place-items-center rounded relative border-black border-2'
 			}
 		>
 			<img
@@ -13,7 +13,7 @@ const ColorSequenceListItem = ({ color, textContent }) => {
 				alt=''
 			/>
 			<span className='absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2'>
-				{color.isCorrect !== null ? (color.isCorrect ? '✔️' : '❌') : '❔'}
+				{/* {color.isCorrect !== null ? (color.isCorrect ? '✔️' : '❌') : '❔'} */}
 			</span>
 		</li>
 	);

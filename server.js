@@ -1,9 +1,8 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
+import { v4 as uuidv4 } from 'uuid';
 import path, { dirname } from 'path';
-import NodeCache from 'node-cache';
-
-const cache = new NodeCache();
+import session from 'express-session';
 
 import initColorSequence from './utils/initColorSequence.js';
 
@@ -16,9 +15,15 @@ const __dirname = dirname(__filename);
 app.use(express.static(path.join(__dirname, 'client', 'build')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(
+	session({
+		secret: uuidv4(),
+		resave: false,
+		saveUninitialized: false,
+	})
+);
 
-const calculateRGBAccuracy = (userAnswerRGB, hashmapMatchId) => {
-	const rgbHashmap = JSON.parse(cache.get('rgbHashmap'));
+const calculateRGBAccuracy = (rgbHashmap, userAnswerRGB, hashmapMatchId) => {
 	const jpegColorArray = rgbHashmap[hashmapMatchId];
 	const accuracyPerRGBArray = jpegColorArray.map((rgbPiece, idx) => {
 		const userAnswerPiece = Math.round(+userAnswerRGB[idx]);
@@ -40,13 +45,17 @@ app.get('/', (req, res) => {
 
 app.get('/init-session', (req, res) => {
 	const { base64DataHashmap, rgbHashmap } = initColorSequence();
-	cache.set('rgbHashmap', JSON.stringify(rgbHashmap));
+	req.session.rgbHashmap = rgbHashmap;
 	res.json(base64DataHashmap);
 });
-
 app.post('/validate-user-answer', (req, res) => {
+	const rgbHashmap = req.session.rgbHashmap;
 	const { userAnswerRGB, hashmapMatchId } = req.body;
-	const accuracyObj = calculateRGBAccuracy(userAnswerRGB, hashmapMatchId);
+	const accuracyObj = calculateRGBAccuracy(
+		rgbHashmap,
+		userAnswerRGB,
+		hashmapMatchId
+	);
 
 	res.json(accuracyObj);
 });
