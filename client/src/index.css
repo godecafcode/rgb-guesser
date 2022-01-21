@@ -1,0 +1,57 @@
+.grid-tilt-enter {
+	margin-top: 0;
+}
+.grid-tilt-enter-active {
+	margin-top: -50%;
+	transition: margin-top 500ms;
+	-webkit-transition: margin-top 500ms;
+	animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+.grid-tilt-enter-done {
+	margin-top: -50%;
+}
+.grid-tilt-exit {
+	margin-top: -50%;
+}
+.grid-tilt-exit-active {
+	margin-top: 0;
+	transition: margin-top 500ms;
+	-webkit-transition: margin-top 500ms;
+	animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+/** RGB TEXT VALUE ANI BELOW*/
+
+.text-enter {
+	margin-bottom: -4rem;
+	background: #ffffff00;
+}
+.text-enter-active {
+	margin-bottom: 0;
+	background: #ffffff;
+
+	transition: background 500ms, margin-bottom 500ms;
+	animation-timing-function: cubic-bezier(0.37, 0, 0.63, 1);
+}
+
+.text-enter-done {
+	margin-bottom: 0;
+	background: #ffffff;
+}
+.text-exit {
+	display: none;
+}
+.text-exit-active {
+	display: none;
+}
+
+@keyframes gridTilt {
+	0% {
+		margin-top: 0%;
+	}
+
+	100% {
+		margin-top: -50%;
+	}
+}

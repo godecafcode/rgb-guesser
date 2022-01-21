@@ -1,0 +1,18 @@
+1. Instead of showing n of correct guesses,
+display overall accuracy when every question has been answered
+
+2. leaderboard: store scores in firebase, use firebase funcs to set and retrieve
+scores. Auth with firebase auth and store link score to user. 
+
+
+
+-- need fix: 
+
+			/**
+			 *  Accuracy var in calculateAnswerAccuracy() is a tiny bit off
+       *  tho barely noticeable.
+			 * 	fix when received complaint from user (joke).
+			 */
+
+restrict allowed accuracy to be within 255 / 2, other answer will be 0, 
+or close to it.
