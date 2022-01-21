@@ -27,9 +27,9 @@ const generateBase64Jpeg = () => {
 	const frameData = Buffer.alloc(width * height * 4);
 	let i = 0;
 	while (i < frameData.length) {
-		frameData[i++] = parseInt(rgbArray[0]); // red
-		frameData[i++] = parseInt(rgbArray[1]); // green
-		frameData[i++] = parseInt(rgbArray[2]); // blue
+		frameData[i++] = parseInt(rgbArray[0]);
+		frameData[i++] = parseInt(rgbArray[1]);
+		frameData[i++] = parseInt(rgbArray[2]);
 		frameData[i++] = 0xff; // alpha - ignored in JPEGs
 	}
 	const rawImageData = {
@@ -48,22 +48,17 @@ const generateBase64Jpeg = () => {
 	};
 };
 
-const SEQUENCE_LENGTH = 20;
+const SEQUENCE_LENGTH = 10;
 const initColorSequence = () => {
-	const base64DataHashmap = {};
-	const rgbHashmap = {};
+	const base64DataDictionary = Object.create(null);
+	const rgbDictionary = Object.create(null);
 	for (let i = 0; i < SEQUENCE_LENGTH; i++) {
 		const { data, rgb } = generateBase64Jpeg();
 		const identifier = uuidv4();
-		rgbHashmap[identifier] = rgb;
-		base64DataHashmap[i] = { hashmapMatchId: identifier, data };
+		rgbDictionary[identifier] = rgb;
+		base64DataDictionary[i] = { dictionaryMatchId: identifier, data };
 	}
-	return { base64DataHashmap, rgbHashmap };
-	// const sequence = Array.apply(null, Array(SEQUENCE_LENGTH)).map(() => {
-	// 	return { id: Math.floor(Math.random() * 1000), ...generateBase64Jpeg() };
-	// });
-
-	// return sequence;
+	return { base64DataDictionary, rgbDictionary };
 };
 
 export default initColorSequence;

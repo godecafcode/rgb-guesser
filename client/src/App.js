@@ -1,24 +1,38 @@
 import React, { useState, useEffect, useReducer, useCallback } from 'react';
 import axios from 'axios';
+import { toFixed } from './utils';
 import { CSSTransition } from 'react-transition-group';
 import './index.css';
 
 import RangeInput from './components/UI/RangeInput';
 import Button from './components/UI/Button';
 import ResultModal from './components/ResultModal/ResultModal';
-import ColorSequenceList from './components/ColorSequenceList';
+import ColorSequenceList from './components/ColorSequence/ColorSequenceList';
 
+const initialAccuracyState = {
+	accuracy: {
+		percentage: 0,
+		individual: [],
+	},
+	combinedSessionAccuracy: [],
+};
 const accuracyReducer = (state, action) => {
-	return {
-		accuracy: {
-			percentage: action.percentage,
-			individual: action.individual,
-		},
-		combinedSessionAccuracy: [
-			...state.combinedSessionAccuracy,
-			action.individual,
-		],
-	};
+	switch (action.type) {
+		case 'RESET':
+			return initialAccuracyState;
+		case 'UPDATE':
+			return {
+				accuracy: {
+					percentage: action.value.percentage,
+					individual: action.value.individual,
+				},
+				combinedSessionAccuracy: [
+					...state.combinedSessionAccuracy,
+					action.value.percentage,
+				],
+			};
+		default:
+	}
 };
 
 const App = () => {
@@ -26,14 +40,12 @@ const App = () => {
 	const [colorSequence, setColorSequence] = useState([]);
 	const [colorsGuessed, setColorsGuessed] = useState([]);
 	const [buttonDisabled, setButtonDisabled] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
-	const [accuracyState, dispatchAccuracy] = useReducer(accuracyReducer, {
-		accuracy: {
-			percentage: 0,
-			individual: [],
-		},
-		combinedSessionAccuracy: [],
-	});
+	const [accuracyState, dispatchAccuracy] = useReducer(
+		accuracyReducer,
+		initialAccuracyState
+	);
 
 	const initialRgbState = {
 		red: '127.5',
@@ -46,10 +58,17 @@ const App = () => {
 	const [base64Color, setBase64Color] = useState({});
 
 	const initSession = useCallback(async () => {
-		const { data } = await axios.get('/init-session');
-		const colorSequenceArray = [...Object.values(data)];
-		setBase64Color(colorSequenceArray[0]);
-		setColorSequence(colorSequenceArray.splice(1, colorSequenceArray.length));
+		try {
+			setIsLoading(true);
+			const { data } = await axios.get('/init-session');
+			const colorSequenceArray = [...Object.values(data)];
+			setBase64Color(colorSequenceArray[0]);
+			setColorSequence(colorSequenceArray.splice(1, colorSequenceArray.length));
+		} catch (e) {
+			console.error(e);
+		} finally {
+			setIsLoading(false);
+		}
 	}, []);
 
 	useEffect(() => {
@@ -72,61 +91,6 @@ const App = () => {
 		});
 	}, [red, green, blue]);
 
-	// const MAX_RGB_INT = 255;
-	// const generateRandomRgbPiece = () => {
-	// 	let rgbValue = Math.floor(Math.random() * MAX_RGB_INT).toString();
-	// 	while (rgbValue.length < 3) {
-	// 		rgbValue = `0${rgbValue}`;
-	// 	}
-	// 	return rgbValue;
-	// };
-
-	// const getRandomRgbColor = useCallback(() => {
-	// 	const randomRgbColorArr = [];
-	// 	while (randomRgbColorArr.length < 3) {
-	// 		const randomRgbPiece = generateRandomRgbPiece();
-	// 		randomRgbColorArr.push(randomRgbPiece);
-	// 	}
-	// 	return randomRgbColorArr;
-	// }, []);
-
-	// const SEQUENCE_LENGTH = 20;
-	// const initializeColorSequence = useCallback(() => {
-	// 	const sequence = Array.apply(null, Array(SEQUENCE_LENGTH)).map(() => {
-	// 		return { rgb: getRandomRgbColor(), isCorrect: null };
-	// 	});
-	// 	setColorSequence(sequence);
-	// 	setCurrentColor(sequence[0]);
-	// 	sequence.shift();
-	// }, [getRandomRgbColor]);
-
-	// useEffect(() => {
-	// 	initializeColorSequence();
-	// }, [initializeColorSequence, getRandomRgbColor]);
-
-	// const getUserRgbSequence = () => {
-	// 	return [rgbState['red'], rgbState['green'], rgbState['blue']];
-	// };
-
-	// const validateUserAnswer = () => {
-	// 	const MARGINAL_PERCENTAGE = 5; // 5% of MAX_RGB_INT (255)
-	// 	const answerIsWithinRange = userAnswerRGB.every((rgbPiece, index) => {
-	// 		const acceptanceMarginal = (MAX_RGB_INT / 100) * MARGINAL_PERCENTAGE;
-	// 		return (
-	// 			+rgbPiece > +currentColor.rgb[index] - acceptanceMarginal &&
-	// 			+rgbPiece < +currentColor.rgb[index] + acceptanceMarginal
-	// 		);
-	// 	});
-	// 	return answerIsWithinRange;
-	// };
-
-	// const showAnswerValidity = validity => {
-	// 	setUserHasAnswered(true);
-	// 	setCurrentColor(color => {
-	// 		return { rgb: color.rgb, isCorrect: validity };
-	// 	});
-	// };
-
 	const resetInputs = () => {
 		setRgbState(initialRgbState);
 	};
@@ -139,15 +103,22 @@ const App = () => {
 	const getAndSetRgbAccuracy = async () => {
 		const { data } = await axios.post('/validate-user-answer', {
 			userAnswerRGB: userAnswerRGB,
-			hashmapMatchId: base64Color.hashmapMatchId,
+			dictionaryMatchId: base64Color.dictionaryMatchId,
 		});
 		const { jpegColorArray, accuracyPerRGBArray, accuracyPercentage } = data;
 		setBase64Color(base64ColorState => {
-			return { ...base64ColorState, rgb: jpegColorArray };
+			return {
+				...base64ColorState,
+				rgb: jpegColorArray,
+				accuracy: accuracyPercentage,
+			};
 		});
 		dispatchAccuracy({
-			percentage: accuracyPercentage,
-			individual: accuracyPerRGBArray,
+			type: 'UPDATE',
+			value: {
+				percentage: accuracyPercentage,
+				individual: accuracyPerRGBArray,
+			},
 		});
 	};
 
@@ -158,17 +129,13 @@ const App = () => {
 		setUserHasAnswered(true);
 		setButtonDisabled(true);
 
-		console.log(base64Color);
-
 		setColorsGuessed(prevGuessedColors => {
-			return [
-				{ ...base64Color, accuracy: accuracyState.percentage }, // Bool = placeholder
-				...prevGuessedColors,
-			];
+			return [{ ...base64Color }, ...prevGuessedColors];
 		});
+
 		const nextColorInLine = colorSequence[0];
 		setTimeout(() => {
-			if (!nextColorInLine) endGameAndShowResults();
+			if (!nextColorInLine) return endGameAndShowResults();
 			setUserHasAnswered(false);
 			resetInputs();
 			setButtonDisabled(false);
@@ -197,11 +164,24 @@ const App = () => {
 		});
 	};
 
-	const restartGame = () => {
-		setRgbState(initialRgbState);
+	const resetAccuracyState = () => {
+		dispatchAccuracy({ type: 'RESET' });
+	};
+
+	const resetState = () => {
 		resetInputs();
-		initSession();
+		resetAccuracyState();
+		setColorsGuessed([]);
+		setUserAnswerRGB([]);
+		setUserHasAnswered(false);
 		setGameIsFinished(false);
+		setButtonDisabled(false);
+		setRgbState(initialRgbState);
+	};
+
+	const restartGame = () => {
+		resetState();
+		initSession();
 	};
 
 	const currentColorElem = (
@@ -228,7 +208,7 @@ const App = () => {
 	);
 
 	const creditEl = (
-		<div className='credit grid place-items-center -mx-4 -mb-4 mt-4 bg-gray-100'>
+		<footer className='credit grid place-items-center -mx-4 -mb-4 mt-4 bg-gray-100'>
 			<span>
 				Made with ❤️ by{' '}
 				<a
@@ -239,23 +219,27 @@ const App = () => {
 					@maxfreakinolson
 				</a>
 			</span>
-		</div>
+		</footer>
 	);
+
+	const userAnswerBgColor = {
+		backgroundColor: userHasAnswered ? `rgb(${userAnswerRGB})` : null,
+	};
 
 	return (
 		<React.Fragment>
 			{gameIsFinished && (
 				<ResultModal
 					onRestartGame={restartGame}
-					// finalScore={`${correctGuesses}/${SEQUENCE_LENGTH}`}
 					colorsGuessed={colorsGuessed}
+					sessionAccuracyArr={accuracyState.combinedSessionAccuracy}
 				></ResultModal>
 			)}
 
-			{colorSequence.length > 0 && base64Color.data && (
+			{!isLoading && (
 				<div className='layout'>
 					<ColorSequenceList
-						base64ColorData={base64Color.data}
+						base64ColorObj={base64Color}
 						colorSequence={colorSequence}
 						widthFull
 					/>
@@ -269,10 +253,8 @@ const App = () => {
 							>
 								<div className='grid h-[200%]'>
 									{currentColorElem}
-									<div
-										className='relative'
-										style={{ backgroundColor: `rgb(${userAnswerRGB})` }}
-									>
+
+									<div className='relative' style={userAnswerBgColor}>
 										<div className='absolute grid place-items-center left-0 top-0 w-full h-1/2'>
 											<CSSTransition
 												in={userHasAnswered}
@@ -294,7 +276,7 @@ const App = () => {
 							<h1 className='text-6xl font-bold'>
 								{/* {correctGuesses}/{SEQUENCE_LENGTH} */}
 								{userHasAnswered &&
-									`${accuracyState.accuracy.percentage.toFixed(2)}%`}
+									`${toFixed(accuracyState.accuracy.percentage, 2)}%`}
 							</h1>
 						</div>
 

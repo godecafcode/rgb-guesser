@@ -1,8 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
+import { toFixed } from '../../utils';
+
 import Button from '../UI/Button';
-import ColorSequenceList from '../ColorSequenceList';
+import Modal from '../UI/Modal';
+import ScrollableList from '../UI/ScrollableList';
+import ColorSequenceListItem from '../ColorSequence/ColorSequenceListItem';
 
 const Backdrop = () => {
 	return (
@@ -11,25 +15,29 @@ const Backdrop = () => {
 };
 
 const ModalOverlay = props => {
+	const { colorsGuessed, onRestartGame, sessionAccuracyArr } = props;
+	const sessionAccuracy = () => {
+		return (
+			sessionAccuracyArr.reduce((n1, n2) => n1 + n2) / colorsGuessed.length
+		);
+	};
 	return (
-		<div className='max-w-[750px] px-4 w-full min-h-[50vh] absolute z-50 top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2'>
-			<div className='px-4 w-full min-h-[50vh] grid place-items-center bg-white h-inherit'>
-				<div className='container grid place-items-center'>
-					<h2 className='text-4xl uppercase font-bold'>final score</h2>
-					<h1 className='final-score text-8xl font-bold'>
-						{/* <span>🎉</span> */}
-						{props.finalScore}
-						{/* <span>🎉</span> */}
-					</h1>
-				</div>
-				<div className='slider overflow-x-scroll rounded-none h-max border-2 border-black'>
-					<ColorSequenceList colorSequence={props.colorsGuessed} widthFull />
-				</div>
-				<Button type='button' onClick={props.onRestartGame}>
-					try again
-				</Button>
+		<Modal>
+			<div className='container grid place-items-center'>
+				<h2 className='text-3xl uppercase font-bold mb-4'>session accuracy</h2>
+				<h1 className='final-score text-8xl font-bold'>
+					{`${toFixed(sessionAccuracy())}%`}
+				</h1>
 			</div>
-		</div>
+			<ScrollableList>
+				{colorsGuessed.map((base64Color, idx) => (
+					<ColorSequenceListItem key={idx} color={base64Color} />
+				))}
+			</ScrollableList>
+			<Button type='button' onClick={onRestartGame}>
+				try again
+			</Button>
+		</Modal>
 	);
 };
 
@@ -42,9 +50,9 @@ const ResultModal = props => {
 			)}
 			{ReactDOM.createPortal(
 				<ModalOverlay
-					finalScore={props.finalScore}
 					colorsGuessed={props.colorsGuessed}
 					onRestartGame={props.onRestartGame}
+					sessionAccuracyArr={props.sessionAccuracyArr}
 				/>,
 				document.getElementById('modal-root')
 			)}

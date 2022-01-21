@@ -23,8 +23,12 @@ app.use(
 	})
 );
 
-const calculateRGBAccuracy = (rgbHashmap, userAnswerRGB, hashmapMatchId) => {
-	const jpegColorArray = rgbHashmap[hashmapMatchId];
+const calculateRGBAccuracy = (
+	rgbDictionary,
+	userAnswerRGB,
+	dictionaryMatchId
+) => {
+	const jpegColorArray = rgbDictionary[dictionaryMatchId];
 	const accuracyPerRGBArray = jpegColorArray.map((rgbPiece, idx) => {
 		const userAnswerPiece = Math.round(+userAnswerRGB[idx]);
 		const smallestNum = Math.min(userAnswerPiece, +rgbPiece);
@@ -39,22 +43,21 @@ const calculateRGBAccuracy = (rgbHashmap, userAnswerRGB, hashmapMatchId) => {
 };
 
 app.get('/', (req, res) => {
-	console.log(path.join(__dirname, 'client', 'build', 'index.html'));
 	res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
 });
 
 app.get('/init-session', (req, res) => {
-	const { base64DataHashmap, rgbHashmap } = initColorSequence();
-	req.session.rgbHashmap = rgbHashmap;
-	res.json(base64DataHashmap);
+	const { base64DataDictionary, rgbDictionary } = initColorSequence();
+	req.session.rgbDictionary = rgbDictionary;
+	res.json(base64DataDictionary);
 });
 app.post('/validate-user-answer', (req, res) => {
-	const rgbHashmap = req.session.rgbHashmap;
-	const { userAnswerRGB, hashmapMatchId } = req.body;
+	const rgbDictionary = req.session.rgbDictionary;
+	const { userAnswerRGB, dictionaryMatchId } = req.body;
 	const accuracyObj = calculateRGBAccuracy(
-		rgbHashmap,
+		rgbDictionary,
 		userAnswerRGB,
-		hashmapMatchId
+		dictionaryMatchId
 	);
 
 	res.json(accuracyObj);
