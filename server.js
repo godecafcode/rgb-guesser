@@ -25,21 +25,21 @@ app.use(
 
 const calculateRGBAccuracy = (
 	rgbDictionary,
-	userAnswerRGB,
+	userAnswerInRgb,
 	dictionaryMatchId
 ) => {
-	const jpegColorArray = rgbDictionary[dictionaryMatchId];
-	const accuracyPerRGBArray = jpegColorArray.map((rgbPiece, idx) => {
-		const userAnswerPiece = Math.round(+userAnswerRGB[idx]);
-		const smallestNum = Math.min(userAnswerPiece, +rgbPiece);
-		const largestNum = Math.max(userAnswerPiece, +rgbPiece);
-		return (smallestNum / largestNum) * 100;
+	const jpegRgbValue = rgbDictionary[dictionaryMatchId];
+	const rgbAccuracyArr = jpegRgbValue.map((value, idx) => {
+		const userAnswer = +userAnswerInRgb[idx];
+		const rgbToMatch = +value;
+		const [smNum, lgNum] = [userAnswer, rgbToMatch].sort((n1, n2) => n1 - n2);
+		return (smNum / lgNum) * 100;
 	});
 
 	const accuracyPercentage =
-		accuracyPerRGBArray.reduce((a, b) => a + b, 0) / accuracyPerRGBArray.length;
+		rgbAccuracyArr.reduce((a, b) => a + b, 0) / rgbAccuracyArr.length;
 
-	return { jpegColorArray, accuracyPerRGBArray, accuracyPercentage };
+	return { jpegRgbValue, rgbAccuracyArr, accuracyPercentage };
 };
 
 app.get('/', (req, res) => {
@@ -53,10 +53,10 @@ app.get('/init-session', (req, res) => {
 });
 app.post('/validate-user-answer', (req, res) => {
 	const rgbDictionary = req.session.rgbDictionary;
-	const { userAnswerRGB, dictionaryMatchId } = req.body;
+	const { userAnswerInRgb, dictionaryMatchId } = req.body;
 	const accuracyObj = calculateRGBAccuracy(
 		rgbDictionary,
-		userAnswerRGB,
+		userAnswerInRgb,
 		dictionaryMatchId
 	);
 

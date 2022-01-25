@@ -75,10 +75,10 @@ const App = () => {
 		initSession();
 	}, [initSession]);
 
-	const [userAnswerRGB, setUserAnswerRGB] = useState([]);
+	const [userAnswerInRgb, setUserAnswerInRgb] = useState([]);
 	const [userHasAnswered, setUserHasAnswered] = useState(false);
 	useEffect(() => {
-		setUserAnswerRGB([rgbState['red'], rgbState['green'], rgbState['blue']]);
+		setUserAnswerInRgb([rgbState['red'], rgbState['green'], rgbState['blue']]);
 	}, [rgbState]);
 
 	const { red, green, blue } = rgbState;
@@ -102,14 +102,14 @@ const App = () => {
 
 	const getAndSetRgbAccuracy = async () => {
 		const { data } = await axios.post('/validate-user-answer', {
-			userAnswerRGB: userAnswerRGB,
+			userAnswerInRgb: userAnswerInRgb,
 			dictionaryMatchId: base64Color.dictionaryMatchId,
 		});
-		const { jpegColorArray, accuracyPerRGBArray, accuracyPercentage } = data;
+		const { jpegRgbValue, rgbAccuracyArr, accuracyPercentage } = data;
 		setBase64Color(base64ColorState => {
 			return {
 				...base64ColorState,
-				rgb: jpegColorArray,
+				rgb: jpegRgbValue,
 				accuracy: accuracyPercentage,
 			};
 		});
@@ -117,7 +117,7 @@ const App = () => {
 			type: 'UPDATE',
 			value: {
 				percentage: accuracyPercentage,
-				individual: accuracyPerRGBArray,
+				individual: rgbAccuracyArr,
 			},
 		});
 	};
@@ -172,7 +172,7 @@ const App = () => {
 		resetInputs();
 		resetAccuracyState();
 		setColorsGuessed([]);
-		setUserAnswerRGB([]);
+		setUserAnswerInRgb([]);
 		setUserHasAnswered(false);
 		setGameIsFinished(false);
 		setButtonDisabled(false);
@@ -223,7 +223,7 @@ const App = () => {
 	);
 
 	const userAnswerBgColor = {
-		backgroundColor: userHasAnswered ? `rgb(${userAnswerRGB})` : null,
+		backgroundColor: userHasAnswered ? `rgb(${userAnswerInRgb})` : null,
 	};
 
 	return (
@@ -263,7 +263,7 @@ const App = () => {
 												unmountOnExit
 											>
 												<h1 className='text-2xl font-bold p-2'>
-													{`rgb(${userAnswerRGB[0]}, ${userAnswerRGB[1]}, ${userAnswerRGB[2]})`}
+													{`rgb(${userAnswerInRgb[0]}, ${userAnswerInRgb[1]}, ${userAnswerInRgb[2]})`}
 												</h1>
 											</CSSTransition>
 										</div>
