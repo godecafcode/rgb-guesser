@@ -1,7 +1,7 @@
 ![Alt Text](https://media.giphy.com/media/gE41vgqVBxevP303Mn/giphy.gif)
 
 <h3 align="center">(React.js Practice Project)</h3>
-<h4 align="center">A RGB Color Guessing Game w/ server-side validation.</h4>
+<h4 align="center">An RGB Color Guessing Game w/ server-side validation.</h4>
 
 
 ## Key Information
